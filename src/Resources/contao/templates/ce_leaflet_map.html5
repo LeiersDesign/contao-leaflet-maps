@@ -1,0 +1,70 @@
+<!-- indexer::stop -->
+<div <?= $this->cssID ?> class="<?= $this->class ?>">
+    <?php if($this->opt_in_needed): ?>
+    <div id="leaflet_map_<?= $this->map['id'] ?>" class="leaflet_map opt_in_needed" style="display: block; width: <?= $this->mapWidth['value'].$this->mapWidth['unit'] ?>; height: <?= $this->mapHeight['value'].$this->mapHeight['unit'] ?>;">
+        <div class="opt_in_text">
+            <p class="opt_in_heading">Wir nutzen OpenStreetMap</p>
+            <p>Ich stimme zu, dass mit der Nutzung Daten an OpenStreetMap übertragen werden. Hinweis: Sie können Ihre Einwilligung jederzeit für die Zukunft widerrufen, indem Sie die Cookies in Ihrem Browser löschen.</p>
+            <p>Weitere Informationen finden Sie in unserer <a href="service/datenschutzerklaerung.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
+            <a onclick="allow_leaflet_maps()" class="leaflet_allow">Karten anzeigen</a>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            if(typeof allow_leaflet_maps != 'function') {
+                window.allow_leaflet_maps = function(){
+                    document.cookie = "leaflet_map=1; max-age=" + 24*60*60;
+                    location.reload(true);
+                }
+            }
+        });
+    </script>
+    <?php else: ?>
+    <div id="leaflet_map_<?= $this->map['id'] ?>" class="leaflet_map" style="display: block; width: <?= $this->mapWidth['value'].$this->mapWidth['unit'] ?>; height: <?= $this->mapHeight['value'].$this->mapHeight['unit'] ?>;"></div>
+    <script>
+        $(document).ready(function () {
+            var leaflet_map_<?= $this->map['id'] ?> = L.map("leaflet_map_<?= $this->map['id'] ?>", {
+                center: [<?= $this->map['center'] ?>],
+                zoom: <?= $this->map['map_zoom'] ?>,
+                zoomControl: false
+            });
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                'attribution': 'Kartendaten &copy; <a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> Mitwirkende'
+            }).addTo(leaflet_map_<?= $this->map['id'] ?>);
+            
+            <?php if($this->map['disable_mouse_wheel_zoom']): ?>
+                leaflet_map_<?= $this->map['id'] ?>.scrollWheelZoom.disable();
+            <?php endif ?>
+            
+            <?php if($this->map['controls_zoom']): ?>
+                L.control.zoom({
+                    position: "<?= $this->map['controls_zoom_position'] ?>"
+                }).addTo(leaflet_map_<?= $this->map['id'] ?>);
+            <?php endif ?>
+            
+            <?php if($this->markers): ?>
+                <?php foreach($this->markers as $marker): ?>
+                    var marker_<?= $marker['id'] ?> = L.marker([<?= $marker['center'] ?>]).addTo(leaflet_map_<?= $this->map['id'] ?>);
+                    
+                    <?php if($marker['add_popup']): ?>
+                        <?php if($this->multi_open_markers): ?>
+                            marker_<?= $marker['id'] ?>.bindPopup('<?= preg_replace( "/\r|\n/", "", $marker['popup_content']); ?>', {
+                                    autoClose: false,
+                                    autoPan: false
+                                });
+                        <?php else: ?>
+                            marker_<?= $marker['id'] ?>.bindPopup('<?= preg_replace( "/\r|\n/", "", $marker['popup_content']); ?>');
+                        <?php endif ?>
+                        
+                        <?php if($marker['popup_open']): ?>
+                            marker_<?= $marker['id'] ?>.openPopup();
+                        <?php endif ?>
+                    <?php endif ?>                    
+                <?php endforeach ?>
+            <?php endif ?>
+        });
+    </script>
+    <?php endif ?>
+</div>
+<!-- indexer::continue -->

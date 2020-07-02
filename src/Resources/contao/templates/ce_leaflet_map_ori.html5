@@ -1,0 +1,78 @@
+<div <?= $this->cssID ?> class="<?= $this->class ?>">
+    <?php if ($this->headline): ?>
+    <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+    <?php endif; ?>
+    <div class="map-container block" id="<?= $this->map_alias ?>" style="width: <?= $this->map_width ?>; height: <?= $this->map_height ?>;">
+        
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var <?= $this->map_alias ?> = L.map('<?= $this->map_alias ?>', {
+                    center: [<?= $this->map_center ?>],
+                    zoom: <?= $this->map_zoom ?>,
+                    zoomControl: false
+                });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                'attribution': 'Kartendaten &copy; <a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> Mitwirkende'
+                }).addTo(<?= $this->map_alias ?>);
+                
+            <?php if($this->disable_mouse_wheel_zoom): ?>
+                <?= $this->map_alias ?>.scrollWheelZoom.disable();
+            <?php endif ?>
+                
+            <?php if($this->map_zoom_controls): ?>
+                L.control.zoom({
+                    position: '<?= $this->map_zoom_controls_position ?>'
+                }).addTo(<?= $this->map_alias ?>);
+            <?php endif ?>
+                
+            <?php if($this->map_markers && !$this->enable_marker_cluster): ?>
+                <?php if(($this->map_fit_bounds) && ($this->featureGroup)): ?>
+                    var <?= $this->map_alias ?>_bounds = new L.LatLngBounds(<?= $this->featureGroup ?>);
+                    <?= $this->map_alias ?>.fitBounds(<?= $this->map_alias ?>_bounds);
+                <?php endif ?>
+                
+                <?php foreach($this->map_markers as $marker): ?>
+                    var <?= $marker['alias'] ?> = L.marker([<?= $marker['center'] ?>]).addTo(<?= $this->map_alias ?>);
+                    
+                    <?php if($marker['add_popup']): ?>
+                        <?php if($this->map_markers_multiple_open): ?>
+                            <?= $marker['alias'] ?>.bindPopup('<?= preg_replace( "/\r|\n/", "", $marker['popup_content']); ?>', {
+                                    autoClose: false,
+                                    autoPan: false
+                                });
+                        <?php else: ?>
+                            <?= $marker['alias'] ?>.bindPopup('<?= preg_replace( "/\r|\n/", "", $marker['popup_content']); ?>');
+                        <?php endif ?>
+                    <?php endif ?>
+                    
+                    <?php if($marker['popup_open']): ?>
+                        <?= $marker['alias'] ?>.openPopup();
+                    <?php endif ?>
+                <?php endforeach ?>
+            <?php elseif($this->map_markers && $this->enable_marker_cluster): ?>
+                <?= $this->map_alias ?>_cluster_group = new L.MarkerClusterGroup();
+                
+                <?php foreach($this->map_markers as $marker): ?>
+                    <?= $this->map_alias ?>_cluster_group.addLayer(L.marker([<?= $marker['center'] ?>]));
+                <?php endforeach ?>
+                
+                <?= $this->map_alias ?>.addLayer(<?= $this->map_alias ?>_cluster_group);
+            <?php else: ?>
+                
+            <?php endif ?>
+            <?php if($this->layers): ?>
+                var <?= $this->map_alias ?>_layer_group = new L.FeatureGroup();
+                <?= $this->map_alias ?>.addLayer(<?= $this->map_alias ?>_layer_group);
+                
+                <?php foreach($this->layers as $key => $layer): ?>
+                    <?php if($layer['ext'] == 'kml'): ?>
+                        var <?= $this->map_alias ?>_layer_<?= $key ?> = omnivore.kml('<?= $layer['path'] ?>').addTo(<?= $this->map_alias ?>_layer_group);
+                    <?php elseif($layer['ext'] == 'gpx'): ?>
+                        var <?= $this->map_alias ?>_layer_<?= $key ?> = omnivore.gpx('<?= $layer['path'] ?>').addTo(<?= $this->map_alias ?>_layer_group);
+                    <?php endif ?>
+                <?php endforeach ?>
+            <?php endif ?>
+        });
+    </script>
+</div>

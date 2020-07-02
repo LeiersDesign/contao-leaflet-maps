@@ -1,0 +1,26 @@
+services:
+    _defaults:
+        public: true
+        
+    leafletmaps.backend.callbacks:
+        class: LeiersDesign\LeafletMaps\EventListener\BackendCallbacks
+        tags:
+            - { name: contao.callback, table: 'tl_leaflet_maps', target: fields.alias.save, method: generateAlias }
+            - { name: contao.callback, table: 'tl_leaflet_maps', target: fields.center.save, method: getCenterCoords }
+            - { name: contao.callback, table: 'tl_leaflet_maps_markers', target: fields.center.save, method: getCenterCoordsMarker }
+        
+#    stadtportal.hooks.getTemplate:
+#        class: LeiersDesign\Stadtportal\EventListener\BackendHooks
+#        tags:
+#            - { name: contao.hook, hook: getSystemMessages, method: onGetSystemMessages }
+#        arguments:
+#            - "@request_stack"
+#            - "@contao.routing.scope_matcher"
+#            
+#    stadtportal.callbacks.switchVersionButton:
+#        class: LeiersDesign\Stadtportal\EventListener\BackendHooks
+#        tags:
+#            - { name: contao.callback, table: 'tl_firmeneintraege', target: list.operations.switch_version.button, method: switchVersionButtonCallback }
+#        arguments:
+#            - "@request_stack"
+#            - "@contao.routing.scope_matcher"
